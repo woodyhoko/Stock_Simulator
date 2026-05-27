@@ -1,42 +1,91 @@
-# Stock Simulator — Evolutionary AI Traders
+# Stock Simulator — 100 Evolving AI Traders
 
-A stock market simulation where **100 autonomous AI agents** compete in an evolving economy. Each agent has a unique neural network strategy that adapts over generations via neuroevolution.
+**Ho Ko** — CSIE, National Central University
 
-📄 **[Read the full documentation (PDF)](https://github.com/woodyhoko/Stock_Simulator/blob/main/readme.pdf)**
+📄 **[Full Documentation (PDF)](https://github.com/woodyhoko/Stock_Simulator/blob/main/readme.pdf)**
 
 ---
 
 ## Overview
 
-<img src="https://raw.githubusercontent.com/woodyhoko/Stock_Simulator/main/d1.png" width="800">
+A real-time stock market simulation where **100 autonomous AI agents** from two competing species (`A` and `B`) trade against each other. Each agent runs a unique neural network trading strategy. Agents that profit survive; those that don't are eliminated. The population evolves over hundreds of rounds using techniques drawn from deep learning, SVM, Hopfield networks, and the NEAT algorithm.
 
-Each AI trader is driven by a neural network that observes market signals (price history, volume, portfolio state) and outputs buy/sell/hold decisions. The simulation runs for hundreds of market cycles; losing strategies die off, winning strategies reproduce with mutation.
+<img src="https://raw.githubusercontent.com/woodyhoko/Stock_Simulator/main/d1.png" width="800">
 
 ---
 
-## Key Features
+## Simulation Design
 
-- 🤖 **100 concurrent AI agents** — each with a unique evolved trading strategy
-- 📈 **Simulated market dynamics** — price moves emerge from agent interactions (supply/demand)
-- 🧬 **Neuroevolution** — agents that profit reproduce; losers are replaced
-- 📊 **Live visualization** — real-time portfolio and market charts
+### Two-Species Market Ecology
+
+The simulation uses two competing agent species:
+- **Species A** — 5 initial agents, 5 of Species B, 300 total rounds
+- **Species B** — same parameters, opposing trading objective
+
+Agents start with a bank value of 0. Each round, agents decide to buy or sell based on their internal model. An agent is eliminated when its portfolio value drops to 0. The market price emerges from the aggregate buy/sell pressure of all surviving agents — no external price feed.
+
+### AI Techniques Per Agent
+
+Each agent can use one of several AI approaches:
+- **Deep Learning** (MLP with backpropagation)
+- **SVM** (Support Vector Machine for signal classification)
+- **Hopfield Network** (associative memory for pattern recall)
+- **NEAT** (NeuroEvolution of Augmenting Topologies — evolves network structure)
+
+The mix of architectures within the population creates genuine diversity in trading strategies — some agents are trend-followers, others are mean-reversion traders, others are adversarial.
+
+### Agent Modes
+
+| Mode | Behavior |
+|---|---|
+| **Extreme AI** | Agent trades aggressively at maximum confidence |
+| **Too Safe** | Agent only trades when signal is very strong — misses opportunities |
 
 ---
 
 ## Screenshots
 
-<img src="https://raw.githubusercontent.com/woodyhoko/Stock_Simulator/main/d2.png" width="400">
+<img src="https://raw.githubusercontent.com/woodyhoko/Stock_Simulator/main/d2.png" width="500">
+
+---
+
+## Interface Controls
+
+| Control | Action |
+|---|---|
+| **Run** | Start the simulation |
+| **Join Game** | Connect as a human player |
+| **Restart** | Reset to initial state |
+| **Extreme AI / Too Safe** | Toggle agent risk profile |
+| **Next Round** | Advance one round manually |
+| **Reset User** | Clear human player state |
+| **Check** | Inspect a specific agent's portfolio |
+| **Eliminated AI** | View removed agents |
+
+The log panel shows per-round portfolio values for all agents, and a currency chart tracks bank value over time for Species A and B separately.
 
 ---
 
 ## Run
 
-The simulator ships as a self-contained Java application:
+The simulator ships as a compiled Java application (built with Processing 3):
+
+**32-bit:** `finalproject.exe` (32-bit folder)  
+**64-bit:** `finalproject.exe` (64-bit folder)
+
+Java is required. A bundled 64-bit JRE (~55 MB) is included for systems without Java pre-installed.
 
 ```bash
-# Unzip and run (Java required)
-# See readme.pdf for full instructions
+# Extract the zip and run the executable for your OS architecture.
+# See readme.pdf for full parameter descriptions and advanced configuration.
 ```
 
-Full setup instructions, parameter descriptions, and architecture details are in the [PDF documentation](https://github.com/woodyhoko/Stock_Simulator/blob/main/readme.pdf).
+📄 **[Full setup guide and parameter reference → readme.pdf](https://github.com/woodyhoko/Stock_Simulator/blob/main/readme.pdf)**
 
+---
+
+## Built With
+
+- **Processing 3** (Java-based creative coding environment)
+- Neural network implementations in Java
+- Real-time chart rendering via Processing's graphics API
