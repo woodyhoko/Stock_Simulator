@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Simulator — 100 AI Traders</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0d1117;color:#e6edf3;font-family:"Segoe UI",system-ui,sans-serif;padding:20px;min-height:100vh}
+  h1{font-size:20px;margin-bottom:4px;color:#3fb950}
+  .sub{color:#8b949e;font-size:13px;margin-bottom:20px}
+  .layout{display:grid;grid-template-columns:1fr 260px;gap:14px}
+  @media(max-width:700px){.layout{grid-template-columns:1fr}}
+  .card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:14px;margin-bottom:14px}
+  h2{font-size:12px;color:#8b949e;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  canvas{width:100%;display:block}
+  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  button{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
+  .bp{background:#3fb950;color:#0d1117}
+  .bp:hover{filter:brightness(1.08)}
+  .bs{background:#21262d;color:#e6edf3}
+  .bs:hover{background:#2d333b}
+  .agent-list{max-height:300px;overflow-y:auto;font-size:12px}
+  .agent{display:flex;justify-content:space-between;padding:4px 6px;border-radius:5px;margin-bottom:2px}
+  .agent:nth-child(odd){background:#21262d30}
+  .a-name{color:#8b949e}
+  .a-val{font-variant-numeric:tabular-nums}
+  .a-val.pos{color:#3fb950}
+  .a-val.neg{color:#f85149}
+  .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .stat{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:10px;text-align:center}
+  .stat .lbl{font-size:11px;color:#8b949e}
+  .stat .num{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+  .legend{font-size:11px;color:#8b949e;margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
+  .leg{display:flex;align-items:center;gap:4px}
+  .sq{width:10px;height:10px;border-radius:2px}
+</style>
+</head>
+<body>
+<h1>Stock Simulator — 100 AI Traders</h1>
+<p class="sub">Two competing species of neural-network traders (NEAT, MLP, SVM, Hopfield) drive the market price. Agents that go bankrupt are eliminated. Watch the ecology evolve.</p>
+
+<div class="btns">
+  <button class="bp" id="runBtn">▶ Run</button>
+  <button class="bs" id="nextBtn">⏭ Next Round</button>
+  <button class="bs" id="resetBtn">↺ Reset</button>
+</div>
+
+<div class="layout">
+  <div>
+    <div class="card">
+      <h2>Market Price</h2>
+      <canvas id="price" height="160"></canvas>
+      <div class="legend">
+        <div class="leg"><div class="sq" style="background:#3fb950"></div>Market price</div>
+        <div class="leg"><div class="sq" style="background:#21262d"></div>Moving average</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Portfolio Value — Species A vs B</h2>
+      <canvas id="portfolio" height="140"></canvas>
+      <div class="legend">
+        <div class="leg"><div class="sq" style="background:#58a6ff"></div>Species A (avg)</div>
+        <div class="leg"><div class="sq" style="background:#f85149"></div>Species B (avg)</div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="lbl">Round</div><div class="num" id="round" style="color:#3fb950">0</div></div>
+      <div class="stat"><div class="lbl">Market price</div><div class="num" id="mPrice" style="color:#3fb950">100</div></div>
+      <div class="stat"><div class="lbl">A alive / B alive</div><div class="num" id="alive" style="color:#e6edf3">50 / 50</div></div>
+      <div class="stat"><div class="lbl">Eliminations</div><div class="num" id="elim" style="color:#f85149">0</div></div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>Agent Leaderboard</h2>
+      <div class="agent-list" id="agentList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const AGENTS_PER = 50, MODELS = ['NEAT','MLP','SVM','Hopfield'];
+let agents = [], round = 0, running = false, raf = null;
+let prices = [100], avgA = [], avgB = [], elims = 0;
+
+function makeAgents() {
+  agents = [];
+  for (let i = 0; i < AGENTS_PER * 2; i++) {
+    agents.push({
+      id: i, species: i < AGENTS_PER ? 'A' : 'B',
+      model: MODELS[(Math.random() * MODELS.length) | 0],
+      value: 1000 + (Math.random() - 0.5) * 200,
+      alive: true,
+      risk: 0.3 + Math.random() * 0.7,  // how aggressively it bets
+      trend: Math.random() > 0.5 ? 1 : -1,  // bullish or bearish bias
+    });
+  }
+}
+
+function marketStep() {
+  const alive = agents.filter(a => a.alive);
+  const bullA = alive.filter(a => a.species === 'A').reduce((s, a) => s + a.risk * a.trend, 0);
+  const bullB = alive.filter(a => a.species === 'B').reduce((s, a) => s + a.risk * a.trend, 0);
+  const pressure = (bullA + bullB) / (alive.length || 1);
+  const prev = prices[prices.length - 1];
+  const delta = pressure * 2 + (Math.random() - 0.5) * 4;
+  const newP = Math.max(10, prev + delta);
+  prices.push(newP); if (prices.length > 120) prices.shift();
+  const priceChange = (newP - prev) / prev;
+
+  alive.forEach(a => {
+    const bet = a.value * a.risk * 0.25;
+    const signal = a.trend * (Math.random() > 0.5 ? 1 : -1);
+    const pnl = bet * signal * priceChange * 20;
+    a.value += pnl - 2;  // -2 per round cost (stalling penalty)
+    // mutation: occasionally flip trend
+    if (Math.random() < 0.04) a.trend *= -1;
+    if (a.value <= 0) { a.alive = false; elims++; }
+  });
+
+  const liveA = agents.filter(a => a.alive && a.species === 'A');
+  const liveB = agents.filter(a => a.alive && a.species === 'B');
+  avgA.push(liveA.length > 0 ? liveA.reduce((s, a) => s + a.value, 0) / liveA.length : 0);
+  avgB.push(liveB.length > 0 ? liveB.reduce((s, a) => s + a.value, 0) / liveB.length : 0);
+  if (avgA.length > 120) { avgA.shift(); avgB.shift(); }
+  round++;
+}
+
+function lineChart(canvasId, datasets) {
+  const cv = document.getElementById(canvasId), ctx = cv.getContext('2d');
+  const W = cv.clientWidth * devicePixelRatio, H = cv.clientHeight * devicePixelRatio;
+  cv.width = W; cv.height = H;
+  const pad = { l: 44, r: 8, t: 10, b: 20 };
+  const allVals = datasets.flatMap(d => d.data);
+  const mn = Math.min(...allVals), mx = Math.max(...allVals, mn + 1);
+  ctx.fillStyle = '#0d1117'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
+  [0, .25, .5, .75, 1].forEach(v => {
+    const y = pad.t + (1 - v) * (H - pad.t - pad.b);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    ctx.fillStyle = '#8b949e'; ctx.font = `${8 * devicePixelRatio}px monospace`;
+    ctx.fillText((mn + v * (mx - mn)).toFixed(0), 2, y + 3);
+  });
+  datasets.forEach(ds => {
+    if (ds.data.length < 2) return;
+    ctx.beginPath(); ctx.strokeStyle = ds.color; ctx.lineWidth = 2 * devicePixelRatio;
+    ds.data.forEach((v, i) => { const x = pad.l + i / (ds.data.length - 1) * (W - pad.l - pad.r), y = pad.t + (1 - (v - mn) / (mx - mn)) * (H - pad.t - pad.b); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.stroke();
+  });
+}
+
+function updateUI() {
+  const curP = prices[prices.length - 1];
+  document.getElementById('round').textContent = round;
+  document.getElementById('mPrice').textContent = curP.toFixed(1);
+  const liveA = agents.filter(a => a.alive && a.species === 'A').length;
+  const liveB = agents.filter(a => a.alive && a.species === 'B').length;
+  document.getElementById('alive').textContent = liveA + ' / ' + liveB;
+  document.getElementById('elim').textContent = elims;
+  // moving average
+  const ma = prices.slice(-20);
+  const maVal = ma.reduce((a, b) => a + b) / ma.length;
+  lineChart('price', [{ data: prices, color: '#3fb950' }, { data: prices.map((_, i) => { const w = prices.slice(Math.max(0, i - 19), i + 1); return w.reduce((a, b) => a + b) / w.length; }), color: '#30363d' }]);
+  lineChart('portfolio', [{ data: avgA, color: '#58a6ff' }, { data: avgB, color: '#f85149' }]);
+  // leaderboard
+  const top = agents.filter(a => a.alive).sort((a, b) => b.value - a.value).slice(0, 20);
+  document.getElementById('agentList').innerHTML = top.map(a => `<div class="agent"><span class="a-name">${a.species}${a.id % 50} ${a.model}</span><span class="a-val ${a.value >= 1000 ? 'pos' : 'neg'}">${a.value.toFixed(0)}</span></div>`).join('');
+}
+
+function init() { makeAgents(); round = 0; elims = 0; prices = [100]; avgA = []; avgB = []; updateUI(); }
+
+let lastT = 0;
+function loop(ts) {
+  if (!running) return;
+  if (ts - lastT > 200) { lastT = ts; marketStep(); updateUI(); if (agents.filter(a => a.alive).length < 5) { running = false; document.getElementById('runBtn').textContent = '▶ Run'; } }
+  raf = requestAnimationFrame(loop);
+}
+
+document.getElementById('runBtn').onclick = () => { if (running) { running = false; document.getElementById('runBtn').textContent = '▶ Run'; } else { running = true; document.getElementById('runBtn').textContent = '⏸ Pause'; lastT = 0; loop(performance.now()); } };
+document.getElementById('nextBtn').onclick = () => { marketStep(); updateUI(); };
+document.getElementById('resetBtn').onclick = () => { running = false; cancelAnimationFrame(raf); document.getElementById('runBtn').textContent = '▶ Run'; init(); };
+
+init();
+</script>
+</body>
+</html>
