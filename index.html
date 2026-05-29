@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Simulator — 100 Evolving AI Traders</title>
+<meta name="description" content="A multi-agent artificial market where neural-network traders from two competing species drive endogenous price formation and evolve over hundreds of rounds.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#06090c;--panel:#0d141b;--ink:#e6f0f5;--muted:#7d93a3;--up:#26d97f;--dn:#ff4d5e;--am:#ffc94d;--line:rgba(255,255,255,.08)}
+  *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:"Space Grotesk",system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .bg{position:fixed;inset:0;z-index:0;background:radial-gradient(900px 600px at 75% 0,#0e1a16 0,var(--bg) 60%)}
+  canvas#chart{position:fixed;inset:0;z-index:1;opacity:.5}
+  .ticker{position:fixed;top:0;left:0;right:0;z-index:5;background:rgba(6,9,12,.85);border-bottom:1px solid var(--line);font-family:"Roboto Mono";font-size:13px;padding:8px 0;white-space:nowrap;overflow:hidden}
+  .ticker .run{display:inline-block;animation:tk 22s linear infinite;padding-left:100%}
+  @keyframes tk{to{transform:translateX(-100%)}}
+  .ticker .u{color:var(--up)}.ticker .d{color:var(--dn)}
+  .wrap{position:relative;z-index:3;max-width:1020px;margin:0 auto;padding:0 24px}
+  header{min-height:92vh;display:flex;flex-direction:column;justify-content:center;padding:90px 0 36px}
+  .tag{font-family:"Roboto Mono";font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--up);margin-bottom:20px}
+  h1{font-weight:700;font-size:clamp(38px,6.8vw,82px);line-height:1;letter-spacing:-1.5px}
+  h1 .up{color:var(--up)} h1 .dn{color:var(--dn)}
+  .lede{font-size:clamp(16px,2vw,21px);color:var(--muted);max-width:660px;margin:24px 0}
+  .by{font-size:14px;color:var(--muted)}.by b{color:var(--ink)}
+  .cta{display:flex;flex-wrap:wrap;gap:13px;margin-top:28px}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:14px 26px;border-radius:10px;font-weight:700;font-size:15px;transition:.18s;border:1px solid var(--line)}
+  .btn.p{background:var(--up);color:#04150d;border-color:var(--up)}.btn.p:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(38,217,127,.3)}
+  .btn.g{background:rgba(255,255,255,.03)}.btn.g:hover{border-color:var(--up);color:var(--up);transform:translateY(-3px)}
+  section{padding:48px 0}
+  .lbl{font-family:"Roboto Mono";font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--am);margin-bottom:8px}
+  .ttl{font-weight:700;font-size:clamp(23px,3.4vw,36px);margin-bottom:28px;letter-spacing:-.5px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+  .c{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;transition:.2s}
+  .c:hover{transform:translateY(-4px);border-color:rgba(38,217,127,.4)}
+  .c .k{font-family:"Roboto Mono";font-size:12px;color:var(--up);letter-spacing:1px}
+  .c h3{font-size:16px;margin:6px 0 8px}.c p{font-size:14px;color:var(--muted)}
+  figure{margin:18px 0 0;border-radius:16px;overflow:hidden;border:1px solid var(--line)}figure img{width:100%;display:block}
+  footer{border-top:1px solid var(--line);margin-top:50px;padding:38px 0 56px;text-align:center;color:var(--muted);font-size:14px}
+  footer a{color:var(--up)}.fl{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+</style></head>
+<body>
+<div class="bg"></div><canvas id="chart"></canvas>
+<div class="ticker"><span class="run">SPECIES&nbsp;A <span class="u">▲ +4.2%</span> &nbsp;·&nbsp; SPECIES&nbsp;B <span class="d">▼ −2.8%</span> &nbsp;·&nbsp; ALIVE 73/100 &nbsp;·&nbsp; ROUND 184/300 &nbsp;·&nbsp; MLP <span class="u">▲</span> &nbsp; SVM <span class="d">▼</span> &nbsp; HOPFIELD <span class="u">▲</span> &nbsp; NEAT <span class="u">▲▲</span> &nbsp;·&nbsp; VOLATILITY CLUSTERING DETECTED &nbsp;·&nbsp; </span></div>
+<div class="wrap">
+  <header>
+    <div class="tag">Agent-Based Computational Finance</div>
+    <h1>100 AI traders.<br>Price <span class="up">emerges</span> <span class="dn">from chaos.</span></h1>
+    <p class="lede">Two competing species of neural-network traders buy and sell a single asset over 300 rounds. The price isn't imposed — it's <i>endogenous</i>, formed by aggregate order pressure. Profit means survival; bankruptcy means replacement by mutated offspring. Real market phenomena emerge from the bottom up.</p>
+    <p class="by">By <b>Ho Ko</b> — CSIE, National Central University</p>
+    <div class="cta">
+      <a class="btn p" href="demo.html">▶ Browser Demo</a>
+      <a class="btn g" href="https://github.com/woodyhoko/Stock_Simulator/blob/main/readme.pdf">📄 Full Docs (PDF)</a>
+      <a class="btn g" href="https://github.com/woodyhoko/Stock_Simulator#readme">📖 README</a>
+    </div>
+  </header>
+
+  <section>
+    <div class="lbl">four brains</div>
+    <div class="ttl">A heterogeneous trading ecology.</div>
+    <div class="grid">
+      <div class="c"><div class="k">[ MLP ]</div><h3>Deep learning</h3><p>An online-trained perceptron over price returns and moving-average ratios; weights updated by last-action PnL.</p></div>
+      <div class="c"><div class="k">[ SVM ]</div><h3>Support vector machine</h3><p>RBF-kernel classifier splitting buy from sell on momentum / RSI / mean-reversion features.</p></div>
+      <div class="c"><div class="k">[ HOPFIELD ]</div><h3>Associative memory</h3><p>Stores historical price patterns as attractors; converges to the nearest to predict the next move.</p></div>
+      <div class="c"><div class="k">[ NEAT ]</div><h3>Evolving topology</h3><p>Evolves both weights and network structure — growing complexity only when the market warrants it.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="lbl">emergent phenomena</div>
+    <div class="ttl">Fat tails without being told to.</div>
+    <div class="grid">
+      <div class="c"><h3>📈 Volatility clustering</h3><p>Big swings cluster as agents overreact after losses.</p></div>
+      <div class="c"><h3>🔁 Momentum & reversion</h3><p>Trend-followers and reverters coexist at different scales.</p></div>
+      <div class="c"><h3>💥 Herding collapses</h3><p>One-sided convergence produces sudden crashes.</p></div>
+      <div class="c"><h3>🌱 Ecological succession</h3><p>Which model type dominates shifts with the regime.</p></div>
+    </div>
+    <figure><img src="https://raw.githubusercontent.com/woodyhoko/Stock_Simulator/main/d1.png" alt="Stock simulator screenshot" loading="lazy"></figure>
+  </section>
+
+  <footer>
+    <div class="fl"><a href="demo.html">Demo</a><a href="https://github.com/woodyhoko/Stock_Simulator">GitHub</a><a href="https://github.com/woodyhoko/Stock_Simulator#readme">README</a><a href="https://github.com/woodyhoko/Stock_Simulator/blob/main/readme.pdf">PDF</a></div>
+    Built by <a href="https://github.com/woodyhoko">woodyhoko</a> · Stock Simulator — 100 Evolving AI Traders
+  </footer>
+</div>
+<script>
+  const cv=document.getElementById('chart'),x=cv.getContext('2d');let W,H,pts=[],p=300;
+  function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}rs();addEventListener('resize',rs);
+  for(let i=0;i<260;i++){p+=(Math.random()-.48)*8;pts.push(p);}
+  function tick(){x.clearRect(0,0,W,H);p+=(Math.random()-.48)*8;pts.push(p);if(pts.length>260)pts.shift();
+    const mn=Math.min(...pts),mx=Math.max(...pts),rng=(mx-mn)||1;
+    x.beginPath();for(let i=0;i<pts.length;i++){const px=i/pts.length*W,py=H*0.55-(pts[i]-mn)/rng*H*0.35;i?x.lineTo(px,py):x.moveTo(px,py);}
+    x.strokeStyle="rgba(38,217,127,.55)";x.lineWidth=1.6;x.stroke();
+    x.lineTo(W,H);x.lineTo(0,H);x.closePath();x.fillStyle="rgba(38,217,127,.05)";x.fill();
+    requestAnimationFrame(tick);}
+  tick();
+</script>
+</body></html>
