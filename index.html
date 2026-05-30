@@ -40,15 +40,22 @@
   figure{margin:18px 0 0;border-radius:16px;overflow:hidden;border:1px solid var(--line)}figure img{width:100%;display:block}
   footer{border-top:1px solid var(--line);margin-top:50px;padding:38px 0 56px;text-align:center;color:var(--muted);font-size:14px}
   footer a{color:var(--up)}.fl{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+  @media(max-width:640px){
+    .wrap{padding:0 18px}
+    header{min-height:auto;padding:56px 0 28px}
+    .cta{gap:10px}.btn{padding:13px 18px;font-size:14px;flex:1 1 100%;justify-content:center}
+    section{padding:34px 0}.c{padding:20px}
+    .grid{grid-template-columns:1fr}
+  }
 </style></head>
 <body>
 <div class="bg"></div><canvas id="chart"></canvas>
-<div class="ticker"><span class="run">SPECIES&nbsp;A <span class="u">▲ +4.2%</span> &nbsp;·&nbsp; SPECIES&nbsp;B <span class="d">▼ −2.8%</span> &nbsp;·&nbsp; ALIVE 73/100 &nbsp;·&nbsp; ROUND 184/300 &nbsp;·&nbsp; MLP <span class="u">▲</span> &nbsp; SVM <span class="d">▼</span> &nbsp; HOPFIELD <span class="u">▲</span> &nbsp; NEAT <span class="u">▲▲</span> &nbsp;·&nbsp; VOLATILITY CLUSTERING DETECTED &nbsp;·&nbsp; </span></div>
+<div class="ticker"><span class="run">PRODUCT&nbsp;A <span class="u">▲ +4.2%</span> &nbsp;·&nbsp; PRODUCT&nbsp;B <span class="d">▼ −2.8%</span> &nbsp;·&nbsp; PROFITABLE 73/100 &nbsp;·&nbsp; SEASON 12 &nbsp;·&nbsp; GA SELECTION ACTIVE &nbsp;·&nbsp; ELITES BREEDING &nbsp;·&nbsp; VOLATILITY CLUSTERING DETECTED &nbsp;·&nbsp; </span></div>
 <div class="wrap">
   <header>
     <div class="tag">Agent-Based Computational Finance</div>
     <h1>100 AI traders.<br>Price <span class="up">emerges</span> <span class="dn">from chaos.</span></h1>
-    <p class="lede">Two competing species of neural-network traders buy and sell a single asset over 300 rounds. The price isn't imposed — it's <i>endogenous</i>, formed by aggregate order pressure. Profit means survival; bankruptcy means replacement by mutated offspring. Real market phenomena emerge from the bottom up.</p>
+    <p class="lede">100 AI agents trade <b style="color:var(--ink)">two products, A and B</b>, in a market whose prices aren't imposed but emerge <i>endogenously</i> from aggregate order pressure. Each agent's strategy is a small genome; every season a <b style="color:var(--ink)">genetic algorithm</b> culls the weakest traders and breeds mutated offspring from the survivors — so only good strategies persist, and real market phenomena emerge from the bottom up.</p>
     <p class="by">By <b>Ho Ko</b> — CSIE, National Central University</p>
     <div class="cta">
       <a class="btn p" href="demo.html">▶ Browser Demo</a>

@@ -3,185 +3,240 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stock Simulator — 100 AI Traders</title>
+<title>Stock Simulator — 100 Evolving AI Traders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  :root{--bg:#0a0f14;--pan:#111923;--pan2:#0d141d;--line:#21303d;--ink:#e8f1f6;--muted:#88a0ad;
+        --a:#36d399;--b:#f0a93b;--up:#36d399;--down:#fb6a6a;--acc:#38bdf8}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#0d1117;color:#e6edf3;font-family:"Segoe UI",system-ui,sans-serif;padding:20px;min-height:100vh}
-  h1{font-size:20px;margin-bottom:4px;color:#3fb950}
-  .sub{color:#8b949e;font-size:13px;margin-bottom:20px}
-  .layout{display:grid;grid-template-columns:1fr 260px;gap:14px}
-  @media(max-width:700px){.layout{grid-template-columns:1fr}}
-  .card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:14px;margin-bottom:14px}
-  h2{font-size:12px;color:#8b949e;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  body{background:radial-gradient(1100px 600px at 75% -10%,#10202a 0,var(--bg) 55%) fixed,var(--bg);
+       color:var(--ink);font-family:Inter,system-ui,sans-serif;padding:24px 18px 40px;min-height:100vh;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto}
+  h1{font-family:"Space Grotesk";font-size:24px;font-weight:700;letter-spacing:-.01em;
+     background:linear-gradient(90deg,var(--a),var(--acc) 60%,var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:13.5px;line-height:1.6;max-width:820px;margin:6px 0 18px}
+  .sub b{color:var(--ink)}
+  .btns{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+  button{padding:10px 18px;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;transition:.15s}
+  .bp{background:linear-gradient(90deg,var(--a),var(--acc));color:#04221a;box-shadow:0 6px 18px rgba(56,189,248,.25)}
+  .bp:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .bs{background:#1a2531;color:var(--ink);border:1px solid var(--line)}
+  .bs:hover{background:#22303d}
+  .spd{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-left:auto}
+  .spd input{accent-color:var(--acc)}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  @media(max-width:640px){.stat-row{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:linear-gradient(180deg,var(--pan),var(--pan2));border:1px solid var(--line);border-radius:13px;padding:13px 14px}
+  .stat .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px}
+  .stat .num{font-size:23px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .layout{display:grid;grid-template-columns:1fr 270px;gap:14px}
+  @media(max-width:760px){.layout{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--pan),var(--pan2));border:1px solid var(--line);border-radius:14px;padding:14px}
+  h2{font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:flex;justify-content:space-between}
   canvas{width:100%;display:block}
-  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-  button{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
-  .bp{background:#3fb950;color:#0d1117}
-  .bp:hover{filter:brightness(1.08)}
-  .bs{background:#21262d;color:#e6edf3}
-  .bs:hover{background:#2d333b}
-  .agent-list{max-height:300px;overflow-y:auto;font-size:12px}
-  .agent{display:flex;justify-content:space-between;padding:4px 6px;border-radius:5px;margin-bottom:2px}
-  .agent:nth-child(odd){background:#21262d30}
-  .a-name{color:#8b949e}
-  .a-val{font-variant-numeric:tabular-nums}
-  .a-val.pos{color:#3fb950}
-  .a-val.neg{color:#f85149}
-  .stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-  .stat{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:10px;text-align:center}
-  .stat .lbl{font-size:11px;color:#8b949e}
-  .stat .num{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
-  .legend{font-size:11px;color:#8b949e;margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
-  .leg{display:flex;align-items:center;gap:4px}
-  .sq{width:10px;height:10px;border-radius:2px}
+  .legend{font-size:11px;color:var(--muted);margin-top:7px;display:flex;gap:14px;flex-wrap:wrap}
+  .leg{display:flex;align-items:center;gap:5px}.sq{width:11px;height:11px;border-radius:3px}
+  .agent-list{max-height:330px;overflow-y:auto;font-size:12px}
+  .agent{display:flex;justify-content:space-between;align-items:center;padding:5px 7px;border-radius:6px;margin-bottom:2px;gap:8px}
+  .agent:nth-child(odd){background:rgba(255,255,255,.03)}
+  .a-name{color:var(--muted);font-variant-numeric:tabular-nums}
+  .a-gene{font-size:10px;color:var(--muted);opacity:.8}
+  .a-val{font-variant-numeric:tabular-nums;font-weight:700}
+  .a-val.pos{color:var(--up)}.a-val.neg{color:var(--down)}
 </style>
 </head>
 <body>
-<h1>Stock Simulator — 100 AI Traders</h1>
-<p class="sub">Two competing species of neural-network traders (NEAT, MLP, SVM, Hopfield) drive the market price. Agents that go bankrupt are eliminated. Watch the ecology evolve.</p>
+<div class="wrap">
+  <h1>Stock Simulator · 100 Evolving AI Traders</h1>
+  <p class="sub">100 AI agents trade <b>two products, A and B</b>, in a market whose prices emerge from their own buy/sell pressure. Each agent's strategy is a small genome (momentum vs. mean-reversion tilt per product, plus risk). Every trading season the weakest half is culled and the survivors breed mutated offspring — a <b>genetic algorithm</b>, so only good strategies persist. Watch the <b>evolution curve</b> climb as the gene cloud converges.</p>
 
-<div class="btns">
-  <button class="bp" id="runBtn">▶ Run</button>
-  <button class="bs" id="nextBtn">⏭ Next Round</button>
-  <button class="bs" id="resetBtn">↺ Reset</button>
-</div>
+  <div class="btns">
+    <button class="bp" id="runBtn">▶ Run</button>
+    <button class="bs" id="genBtn">⏭ Skip to next season</button>
+    <button class="bs" id="resetBtn">↺ Reset</button>
+    <div class="spd">speed <input id="speed" type="range" min="0" max="100" value="60"></div>
+  </div>
 
-<div class="layout">
-  <div>
+  <div class="stat-row">
+    <div class="stat"><div class="lbl">Season (generation)</div><div class="num" style="color:var(--acc)" id="gen">0</div></div>
+    <div class="stat"><div class="lbl">Round</div><div class="num" id="round">0</div></div>
+    <div class="stat"><div class="lbl">Best wealth this season</div><div class="num" style="color:var(--up)" id="best">$1000</div></div>
+    <div class="stat"><div class="lbl">Profitable agents</div><div class="num" id="prof">0 / 100</div></div>
+  </div>
+
+  <div class="grid2">
     <div class="card">
-      <h2>Market Price</h2>
-      <canvas id="price" height="160"></canvas>
-      <div class="legend">
-        <div class="leg"><div class="sq" style="background:#3fb950"></div>Market price</div>
-        <div class="leg"><div class="sq" style="background:#21262d"></div>Moving average</div>
-      </div>
+      <h2>Product A — price <span style="color:var(--a)" id="pa">100.0</span></h2>
+      <canvas id="priceA" height="130"></canvas>
     </div>
     <div class="card">
-      <h2>Portfolio Value — Species A vs B</h2>
-      <canvas id="portfolio" height="140"></canvas>
-      <div class="legend">
-        <div class="leg"><div class="sq" style="background:#58a6ff"></div>Species A (avg)</div>
-        <div class="leg"><div class="sq" style="background:#f85149"></div>Species B (avg)</div>
-      </div>
-    </div>
-    <div class="stat-row">
-      <div class="stat"><div class="lbl">Round</div><div class="num" id="round" style="color:#3fb950">0</div></div>
-      <div class="stat"><div class="lbl">Market price</div><div class="num" id="mPrice" style="color:#3fb950">100</div></div>
-      <div class="stat"><div class="lbl">A alive / B alive</div><div class="num" id="alive" style="color:#e6edf3">50 / 50</div></div>
-      <div class="stat"><div class="lbl">Eliminations</div><div class="num" id="elim" style="color:#f85149">0</div></div>
+      <h2>Product B — price <span style="color:var(--b)" id="pb">100.0</span></h2>
+      <canvas id="priceB" height="130"></canvas>
     </div>
   </div>
-  <div>
-    <div class="card">
-      <h2>Agent Leaderboard</h2>
-      <div class="agent-list" id="agentList"></div>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+        <h2>Evolution — wealth per season <span style="color:var(--muted)">(GA selection)</span></h2>
+        <canvas id="evo" height="150"></canvas>
+        <div class="legend">
+          <div class="leg"><div class="sq" style="background:var(--up)"></div>Best agent</div>
+          <div class="leg"><div class="sq" style="background:var(--acc)"></div>Median agent</div>
+          <div class="leg"><div class="sq" style="background:var(--down)"></div>Start ($1000)</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Strategy gene cloud <span style="color:var(--muted)">(converges as it evolves)</span></h2>
+        <canvas id="genes" height="150"></canvas>
+        <div class="legend">
+          <div class="leg">x = product-A tilt (mean-revert ◂▸ momentum)</div>
+          <div class="leg">y = product-B tilt · size = wealth · green = profit</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h2>Leaderboard <span style="color:var(--muted)">top strategies</span></h2>
+        <div class="agent-list" id="agentList"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-const AGENTS_PER = 50, MODELS = ['NEAT','MLP','SVM','Hopfield'];
-let agents = [], round = 0, running = false, raf = null;
-let prices = [100], avgA = [], avgB = [], elims = 0;
+const N=100, SEASON=45, START=1000;
+let agents=[], round=0, gen=0, running=false, raf=null, speed=60, acc=0, last=0;
+let pA=[100], pB=[100], bestHist=[], medHist=[];
 
-function makeAgents() {
-  agents = [];
-  for (let i = 0; i < AGENTS_PER * 2; i++) {
-    agents.push({
-      id: i, species: i < AGENTS_PER ? 'A' : 'B',
-      model: MODELS[(Math.random() * MODELS.length) | 0],
-      value: 1000 + (Math.random() - 0.5) * 200,
-      alive: true,
-      risk: 0.3 + Math.random() * 0.7,  // how aggressively it bets
-      trend: Math.random() > 0.5 ? 1 : -1,  // bullish or bearish bias
-    });
-  }
-}
+const rand=(a,b)=>a+Math.random()*(b-a);
+const clampv=(v,a,b)=>v<a?a:v>b?b:v;
+// genome: mA/mB = momentum weight, rA/rB = mean-reversion weight (per product), risk = bet fraction
+function randGene(){return {mA:rand(-1,1),rA:rand(-1,1),mB:rand(-1,1),rB:rand(-1,1),risk:rand(0.2,0.85)};}
+function makeAgent(gene){return {gene:gene||randGene(),wealth:START,expA:0,expB:0};}
+function initPop(){agents=Array.from({length:N},()=>makeAgent());}
 
-function marketStep() {
-  const alive = agents.filter(a => a.alive);
-  const bullA = alive.filter(a => a.species === 'A').reduce((s, a) => s + a.risk * a.trend, 0);
-  const bullB = alive.filter(a => a.species === 'B').reduce((s, a) => s + a.risk * a.trend, 0);
-  const pressure = (bullA + bullB) / (alive.length || 1);
-  const prev = prices[prices.length - 1];
-  const delta = pressure * 2 + (Math.random() - 0.5) * 4;
-  const newP = Math.max(10, prev + delta);
-  prices.push(newP); if (prices.length > 120) prices.shift();
-  const priceChange = (newP - prev) / prev;
+function ret(a){const n=a.length;return n>1?(a[n-1]-a[n-2])/a[n-2]:0;}
+function maOf(a,k){const s=a.slice(-k);return s.reduce((x,y)=>x+y,0)/s.length;}
 
-  alive.forEach(a => {
-    const bet = a.value * a.risk * 0.25;
-    const signal = a.trend * (Math.random() > 0.5 ? 1 : -1);
-    const pnl = bet * signal * priceChange * 20;
-    a.value += pnl - 2;  // -2 per round cost (stalling penalty)
-    // mutation: occasionally flip trend
-    if (Math.random() < 0.04) a.trend *= -1;
-    if (a.value <= 0) { a.alive = false; elims++; }
+function step(){
+  const cpA=pA[pA.length-1], cpB=pB[pB.length-1];
+  const rA=ret(pA), rB=ret(pB);
+  const devA=(maOf(pA,20)-cpA)/maOf(pA,20), devB=(maOf(pB,20)-cpB)/maOf(pB,20);
+
+  // 1) realize PnL on positions held into this round's price move
+  agents.forEach(a=>{
+    a.wealth += (a.expA*rA + a.expB*rB)*a.wealth - 0.4;   // small holding cost
+    if(a.wealth<1)a.wealth=1;
   });
 
-  const liveA = agents.filter(a => a.alive && a.species === 'A');
-  const liveB = agents.filter(a => a.alive && a.species === 'B');
-  avgA.push(liveA.length > 0 ? liveA.reduce((s, a) => s + a.value, 0) / liveA.length : 0);
-  avgB.push(liveB.length > 0 ? liveB.reduce((s, a) => s + a.value, 0) / liveB.length : 0);
-  if (avgA.length > 120) { avgA.shift(); avgB.shift(); }
+  // 2) choose new exposures + accumulate demand for endogenous price impact
+  let demA=0,demB=0,tot=0;
+  agents.forEach(a=>{
+    a.expA=Math.tanh((a.gene.mA*rA + a.gene.rA*devA)*8)*a.gene.risk;
+    a.expB=Math.tanh((a.gene.mB*rB + a.gene.rB*devB)*8)*a.gene.risk;
+    demA+=a.expA*a.wealth; demB+=a.expB*a.wealth; tot+=a.wealth;
+  });
+  tot=tot||1;
+  const impact=7, revert=0.018, nz=()=>(Math.random()*2-1)*1.1;
+  pA.push(Math.max(10, cpA + impact*(demA/tot) + revert*(100-cpA) + nz()));
+  pB.push(Math.max(10, cpB + impact*(demB/tot) + revert*(100-cpB) + nz()));
+  if(pA.length>170){pA.shift();pB.shift();}
   round++;
+  if(round%SEASON===0) evolve();
 }
 
-function lineChart(canvasId, datasets) {
-  const cv = document.getElementById(canvasId), ctx = cv.getContext('2d');
-  const W = cv.clientWidth * devicePixelRatio, H = cv.clientHeight * devicePixelRatio;
-  cv.width = W; cv.height = H;
-  const pad = { l: 44, r: 8, t: 10, b: 20 };
-  const allVals = datasets.flatMap(d => d.data);
-  const mn = Math.min(...allVals), mx = Math.max(...allVals, mn + 1);
-  ctx.fillStyle = '#0d1117'; ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
-  [0, .25, .5, .75, 1].forEach(v => {
-    const y = pad.t + (1 - v) * (H - pad.t - pad.b);
-    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
-    ctx.fillStyle = '#8b949e'; ctx.font = `${8 * devicePixelRatio}px monospace`;
-    ctx.fillText((mn + v * (mx - mn)).toFixed(0), 2, y + 3);
+// ---- genetic algorithm: cull weakest half, breed offspring from survivors ----
+const pick=arr=>arr[(Math.random()*arr.length)|0];
+function crossover(g1,g2){const o={};for(const k of ['mA','rA','mB','rB','risk'])o[k]=Math.random()<0.5?g1[k]:g2[k];return o;}
+function mutate(g){const m=(v,s,a,b)=>clampv(v+(Math.random()*2-1)*s,a,b);
+  g.mA=m(g.mA,0.25,-1,1);g.rA=m(g.rA,0.25,-1,1);g.mB=m(g.mB,0.25,-1,1);g.rB=m(g.rB,0.25,-1,1);g.risk=m(g.risk,0.12,0.1,1);return g;}
+function evolve(){
+  gen++;
+  agents.sort((a,b)=>b.wealth-a.wealth);
+  bestHist.push(agents[0].wealth); medHist.push(agents[(N/2)|0].wealth);
+  if(bestHist.length>80){bestHist.shift();medHist.shift();}
+  const elite=agents.slice(0, N/2);                 // survivors (strongest 50%)
+  const next=elite.map(a=>makeAgent({...a.gene}));   // carry survivor genes (wealth reset)
+  while(next.length<N){                              // refill with bred + mutated offspring
+    next.push(makeAgent(mutate(crossover(pick(elite).gene, pick(elite).gene))));
+  }
+  agents=next;
+}
+
+// ---- rendering ----
+function lineChart(id,h,sets,opts){
+  opts=opts||{};const cv=document.getElementById(id),x=cv.getContext('2d'),r=Math.min(devicePixelRatio||1,2);
+  const W=cv.clientWidth;cv.width=W*r;cv.height=h*r;x.setTransform(r,0,0,r,0,0);
+  const pad={l:42,r:8,t:8,b:14};
+  const all=sets.flatMap(s=>s.data).filter(v=>isFinite(v));
+  let mn=opts.min!==undefined?opts.min:Math.min(...all), mx=Math.max(...all,mn+1);
+  const R=mx-mn||1;
+  x.clearRect(0,0,W,h);
+  x.strokeStyle='rgba(255,255,255,.06)';x.fillStyle='var(--muted)';x.lineWidth=1;x.font='9px ui-monospace,monospace';
+  for(let i=0;i<=3;i++){const y=pad.t+i*(h-pad.t-pad.b)/3;x.beginPath();x.moveTo(pad.l,y);x.lineTo(W-pad.r,y);x.stroke();
+    x.fillStyle='#88a0ad';x.fillText((mx-i*R/3).toFixed(0),3,y+3);}
+  sets.forEach(s=>{if(s.data.length<2)return;x.beginPath();x.strokeStyle=s.color;x.lineWidth=s.w||2;x.setLineDash(s.dash||[]);
+    s.data.forEach((v,i)=>{const X=pad.l+i/(s.data.length-1)*(W-pad.l-pad.r),Y=pad.t+(1-(v-mn)/R)*(h-pad.t-pad.b);i?x.lineTo(X,Y):x.moveTo(X,Y);});
+    x.stroke();x.setLineDash([]);});
+}
+function evoChart(){
+  const sets=[{data:bestHist,color:'#36d399',w:2},{data:medHist,color:'#38bdf8',w:2}];
+  if(bestHist.length)sets.push({data:bestHist.map(()=>START),color:'#fb6a6a',w:1,dash:[4,4]});
+  const lo=Math.min(START, ...(medHist.length?medHist:[START]));
+  lineChart('evo',150,sets,{min:lo});
+}
+function geneChart(){
+  const cv=document.getElementById('genes'),x=cv.getContext('2d'),r=Math.min(devicePixelRatio||1,2);
+  const W=cv.clientWidth,H=150;cv.width=W*r;cv.height=H*r;x.setTransform(r,0,0,r,0,0);
+  x.clearRect(0,0,W,H);
+  const pad=14;
+  x.strokeStyle='rgba(255,255,255,.08)';x.lineWidth=1;
+  x.beginPath();x.moveTo(W/2,pad);x.lineTo(W/2,H-pad);x.moveTo(pad,H/2);x.lineTo(W-pad,H/2);x.stroke();
+  // tilt = momentum - mean_revert  (range ~ -2..2 -> map to -1..1)
+  agents.forEach(a=>{
+    const tx=clampv((a.gene.mA-a.gene.rA)/2,-1,1), ty=clampv((a.gene.mB-a.gene.rB)/2,-1,1);
+    const X=W/2+tx*(W/2-pad), Y=H/2-ty*(H/2-pad);
+    const profit=a.wealth>=START;
+    const sz=2+Math.min(6,Math.sqrt(a.wealth)/14);
+    x.beginPath();x.arc(X,Y,sz,0,6.28);
+    x.fillStyle=profit?'rgba(54,211,153,.7)':'rgba(251,106,106,.55)';x.fill();
   });
-  datasets.forEach(ds => {
-    if (ds.data.length < 2) return;
-    ctx.beginPath(); ctx.strokeStyle = ds.color; ctx.lineWidth = 2 * devicePixelRatio;
-    ds.data.forEach((v, i) => { const x = pad.l + i / (ds.data.length - 1) * (W - pad.l - pad.r), y = pad.t + (1 - (v - mn) / (mx - mn)) * (H - pad.t - pad.b); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-    ctx.stroke();
-  });
+}
+function fmt(v){return v>=1000?'$'+(v/1000).toFixed(v>=10000?0:2)+'k':'$'+v.toFixed(0);}
+function updateUI(){
+  document.getElementById('gen').textContent=gen;
+  document.getElementById('round').textContent=round;
+  document.getElementById('pa').textContent=pA[pA.length-1].toFixed(1);
+  document.getElementById('pb').textContent=pB[pB.length-1].toFixed(1);
+  const best=Math.max(...agents.map(a=>a.wealth));
+  document.getElementById('best').textContent=fmt(best);
+  document.getElementById('prof').textContent=agents.filter(a=>a.wealth>START).length+' / '+N;
+  lineChart('priceA',130,[{data:pA,color:'#36d399',w:2}]);
+  lineChart('priceB',130,[{data:pB,color:'#f0a93b',w:2}]);
+  evoChart(); geneChart();
+  const top=agents.slice().sort((a,b)=>b.wealth-a.wealth).slice(0,15);
+  const sg=g=>`A:${g.mA>g.rA?'mom':'rev'} B:${g.mB>g.rB?'mom':'rev'} r${g.risk.toFixed(2)}`;
+  document.getElementById('agentList').innerHTML=top.map((a,i)=>
+    `<div class="agent"><span class="a-name">#${i+1} <span class="a-gene">${sg(a.gene)}</span></span><span class="a-val ${a.wealth>=START?'pos':'neg'}">${fmt(a.wealth)}</span></div>`).join('');
 }
 
-function updateUI() {
-  const curP = prices[prices.length - 1];
-  document.getElementById('round').textContent = round;
-  document.getElementById('mPrice').textContent = curP.toFixed(1);
-  const liveA = agents.filter(a => a.alive && a.species === 'A').length;
-  const liveB = agents.filter(a => a.alive && a.species === 'B').length;
-  document.getElementById('alive').textContent = liveA + ' / ' + liveB;
-  document.getElementById('elim').textContent = elims;
-  // moving average
-  const ma = prices.slice(-20);
-  const maVal = ma.reduce((a, b) => a + b) / ma.length;
-  lineChart('price', [{ data: prices, color: '#3fb950' }, { data: prices.map((_, i) => { const w = prices.slice(Math.max(0, i - 19), i + 1); return w.reduce((a, b) => a + b) / w.length; }), color: '#30363d' }]);
-  lineChart('portfolio', [{ data: avgA, color: '#58a6ff' }, { data: avgB, color: '#f85149' }]);
-  // leaderboard
-  const top = agents.filter(a => a.alive).sort((a, b) => b.value - a.value).slice(0, 20);
-  document.getElementById('agentList').innerHTML = top.map(a => `<div class="agent"><span class="a-name">${a.species}${a.id % 50} ${a.model}</span><span class="a-val ${a.value >= 1000 ? 'pos' : 'neg'}">${a.value.toFixed(0)}</span></div>`).join('');
-}
+function reset(){running=false;cancelAnimationFrame(raf);document.getElementById('runBtn').textContent='▶ Run';
+  round=0;gen=0;pA=[100];pB=[100];bestHist=[];medHist=[];initPop();updateUI();}
 
-function init() { makeAgents(); round = 0; elims = 0; prices = [100]; avgA = []; avgB = []; updateUI(); }
+document.getElementById('speed').oninput=e=>speed=+e.target.value;
+function loop(ts){if(!running)return;const dt=ts-last;last=ts;acc+=dt;const interval=300-speed*2.7;
+  if(acc>interval){acc=0;step();updateUI();}raf=requestAnimationFrame(loop);}
+document.getElementById('runBtn').onclick=()=>{if(running){running=false;document.getElementById('runBtn').textContent='▶ Run';}
+  else{running=true;document.getElementById('runBtn').textContent='⏸ Pause';last=performance.now();acc=0;loop(last);}};
+document.getElementById('genBtn').onclick=()=>{const g0=gen;while(gen===g0)step();updateUI();};
+document.getElementById('resetBtn').onclick=reset;
+window.addEventListener('resize',updateUI);
 
-let lastT = 0;
-function loop(ts) {
-  if (!running) return;
-  if (ts - lastT > 200) { lastT = ts; marketStep(); updateUI(); if (agents.filter(a => a.alive).length < 5) { running = false; document.getElementById('runBtn').textContent = '▶ Run'; } }
-  raf = requestAnimationFrame(loop);
-}
-
-document.getElementById('runBtn').onclick = () => { if (running) { running = false; document.getElementById('runBtn').textContent = '▶ Run'; } else { running = true; document.getElementById('runBtn').textContent = '⏸ Pause'; lastT = 0; loop(performance.now()); } };
-document.getElementById('nextBtn').onclick = () => { marketStep(); updateUI(); };
-document.getElementById('resetBtn').onclick = () => { running = false; cancelAnimationFrame(raf); document.getElementById('runBtn').textContent = '▶ Run'; init(); };
-
-init();
+initPop();updateUI();
 </script>
 </body>
 </html>
